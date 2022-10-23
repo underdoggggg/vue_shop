@@ -87,7 +87,7 @@
 
     <!-- 添加用户对话框 -->
     <el-dialog
-      title="提示"
+      title="添加用户"
       :visible.sync="addDialogVisible"
       width="50%"
       @close="addFormClose"
@@ -130,7 +130,7 @@
         <el-form-item label="用户名">
           <el-input v-model="editForm.username" disabled></el-input>
         </el-form-item>
-        <el-form-item label="邮箱" prop="emaik"
+        <el-form-item label="邮箱" prop="email"
           ><el-input v-model="editForm.email"></el-input
         ></el-form-item>
         <el-form-item label="手机" prop="mobile"
@@ -245,7 +245,7 @@ export default {
         return this.$message.error('获取用户列表失败')
       // console.log(res)
       this.userList = res.data.users
-      this.total = res.data.total
+      this.total = res.data.totalpage
     },
     handleSizeChange(newSize) {
       this.queryInfo.pagesize = newSize
@@ -265,6 +265,9 @@ export default {
         return this.$message.error('更新用户状态失败')
       }
       this.$message.success('更新用户状态成功')
+      // console.log(userinfo.mg_state)
+      // console.log(res.data.mg_state)
+      // console.log(userinfo.mg_state === res.data.mg_state)
     },
     // 监听表单关闭
     addFormClose() {
