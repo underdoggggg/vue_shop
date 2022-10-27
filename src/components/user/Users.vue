@@ -1,11 +1,7 @@
 <template>
   <div>
     <!-- 面包屑区域 -->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-      <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-    </el-breadcrumb>
+
     <!-- 卡片视图区域 -->
     <el-card>
       <!-- 搜索与添加区域 -->
@@ -68,6 +64,7 @@
               type="warning"
               icon="el-icon-setting"
               size="mini"
+              @click="allotRole(scope.row)"
             ></el-button>
           </template>
         </el-table-column>
@@ -142,6 +139,33 @@
         <el-button type="primary" @click="editUserInfo()">确定</el-button>
       </span>
     </el-dialog>
+
+    <!-- 分配角色对话框 -->
+    <el-dialog
+      title="分配角色"
+      :visible.sync="allotRoleVisible"
+      width="50%"
+      @close="setRoleDialogClose"
+    >
+      <p>当前的用户：{{ allotForm.username }}</p>
+      <p>当前的角色：{{ allotForm.role_name }}</p>
+      <p>
+        分配新角色:<!-- 下拉菜单 -->
+        <el-select v-model="selectRoleId" placeholder="请选择">
+          <el-option
+            v-for="item in rolesList"
+            :key="item.id"
+            :label="item.roleName"
+            :value="item.id"
+          >
+          </el-option>
+        </el-select>
+      </p>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="allotRoleVisible = false">取消</el-button>
+        <el-button @click="setRole">确定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -176,6 +200,7 @@ export default {
       total: 0,
       addDialogVisible: false,
       editDialogVisible: false,
+      allotRoleVisible: false,
       addForm: {
         username: '',
         password: '',
@@ -185,6 +210,15 @@ export default {
       editForm: {
         username: '',
       },
+      // 需要被分配角色的用户列表
+      allotForm: {},
+      // 所有角色列表
+      rolesList: [],
+      // 选中的角色ID
+      selectRoleId: '',
+      // 选中的用户ID
+      selectUserId: '',
+
       // 添加表单的验证规则对象
       addFormRules: {
         username: [
@@ -245,7 +279,7 @@ export default {
         return this.$message.error('获取用户列表失败')
       // console.log(res)
       this.userList = res.data.users
-      this.total = res.data.totalpage
+      this.total = res.data.total
     },
     handleSizeChange(newSize) {
       this.queryInfo.pagesize = newSize
@@ -326,11 +360,11 @@ export default {
 
     // 弹框提示是否删除用户
     async removeUserById(id) {
-      const confirmResult = await this.$comfirm(
+      const confirmResult = await this.$confirm(
         '此操作永久删除数据，是否继续?',
         '提示',
         {
-          confirmButtonText: '确定',
+          comfirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning',
         }
@@ -344,6 +378,42 @@ export default {
         return this.$message.error('删除用户失败')
       }
       this.$message.success('删除用户成功')
+    },
+
+    // 获取分配角色数据
+    async allotRole(user) {
+      this.allotForm = user
+      const { data: res } = await this.$http.get(`roles`)
+      if (res.meta.status !== 200) {
+        return this.$message.error('获取角色失败')
+      }
+      this.rolesList = res.data
+      this.allotRoleVisible = true
+      // console.log(user)
+    },
+
+    // 发起请求分配新角色
+    async setRole() {
+      if (!this.selectRoleId) return this.$message.error('请选择分配的角色')
+      const { data: res } = await this.$http.put(
+        `users/${this.allotForm.id}/role`,
+        {
+          rid: this.selectRoleId,
+        }
+      )
+      if (res.meta.status !== 200) {
+        // console.log(res)
+        return this.$message.error('更新角色失败')
+      }
+      this.$message.success('更新角色成功')
+      this.getUserList()
+      this.allotRoleVisible = false
+    },
+
+    // 分配角色对话框关闭
+    setRoleDialogClose() {
+      this.selectRoleId = ''
+      this.allotForm = {}
     },
   },
 }

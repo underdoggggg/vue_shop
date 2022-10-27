@@ -14,6 +14,13 @@
         <Menu :menuList="menuList" :isCollapse="isCollapse"></Menu>
       </el-aside>
       <el-main>
+        <Breadcrumbs
+          v-show="
+            $route.path == '/welcome'
+              ? (breadcrumbIsShow = false)
+              : (breadcrumbIsShow = true)
+          "
+        ></Breadcrumbs>
         <router-view></router-view>
       </el-main>
     </el-container>
@@ -22,17 +29,24 @@
 
 <script>
 import Menu from './Menu.vue'
+import Breadcrumbs from './Breadcrumbs.vue'
 export default {
   data() {
     return {
       menuList: {},
       isCollapse: false,
+      breadcrumbIsShow: '',
     }
   },
   created() {
     this.getMenuItem()
   },
-  components: { Menu },
+  components: { Menu, Breadcrumbs },
+  // updated() {
+  //   if ((this.$route.path = '/welcome')) return (breadcrumbIsShow = false)
+  //   else return (breadcrumbIsShow = true)
+  // },
+
   methods: {
     logout() {
       window.sessionStorage.removeItem('token')
